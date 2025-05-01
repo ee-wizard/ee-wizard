@@ -11,6 +11,10 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+    # 设置时区
+env:
+    TZ: Asia/Shanghai
+
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
@@ -42,9 +46,9 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 10.10.0
+          version: 10
       - name: Install Dependency
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
       - name: Build Site
         run: pnpm run build
       - name: Setup Pages
@@ -55,4 +59,4 @@ jobs:
           path: '.vitepress/dist'
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v3
+        uses: actions/deploy-pages@v4
