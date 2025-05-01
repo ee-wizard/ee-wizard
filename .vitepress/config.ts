@@ -8,7 +8,7 @@ const isProd = process.env.NODE_ENV === 'production'
 
 export default defineConfig({
     title: 'Wizard Blog',
-    base: '/',
+    base: '/ee-wizard/',
     cacheDir: './node_modules/vitepress_cache',
     description: 'vitepress,blog,blog-theme',
     ignoreDeadLinks: true,
@@ -17,7 +17,7 @@ export default defineConfig({
         website: 'https://github.com/airene/vitepress-blog-pure', //copyright link
         // 评论的仓库地址 https://giscus.app/ 请按照这个官方初始化后覆盖
         comment: {
-            repo: 'airene/vitepress-blog-pure',
+            repo: 'ee-wizard/ee-wizard',
             repoId: 'MDEwOlJlcG9zaXRvcnkzODIyMjY5Nzg',
             categoryId: 'DIC_kwDOFshSIs4CpZga'
         },
