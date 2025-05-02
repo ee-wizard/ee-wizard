@@ -18,8 +18,8 @@ export default defineConfig({
         // 评论的仓库地址 https://giscus.app/ 请按照这个官方初始化后覆盖
         comment: {
             repo: 'ee-wizard/ee-wizard',
-            repoId: 'MDEwOlJlcG9zaXRvcnkzODIyMjY5Nzg',
-            categoryId: 'DIC_kwDOFshSIs4CpZga'
+            repoId: 'R_kgDOOi5LPw',
+            categoryId: 'DIC_kwDOOi5LP84Cpr06'
         },
         nav: [
             { text: 'Home', link: '/' },
@@ -36,16 +36,16 @@ export default defineConfig({
         outline: {
             label: '文章摘要'
         },
-        socialLinks: [{ icon: 'github', link: 'https://github.com/Wizard-NJUPT' }]
+        socialLinks: [{ icon: 'github', link: 'https://github.com/Wizard-NJUPT' }],
     } as any,
 
     srcExclude: isProd
         ? [
-              '**/trash/**/*.md', // 排除所有 trash 目录
-              '**/draft/**/*.md', // 递归排除子目录
-              '**/private-notes/*.md', // 排除特定文件
-              'README.md'
-          ]
+            '**/trash/**/*.md', // 排除所有 trash 目录
+            '**/draft/**/*.md', // 递归排除子目录
+            '**/private-notes/*.md', // 排除特定文件
+            'README.md'
+        ]
         : ['README.md'],
     vite: {
         //build: { minify: false }
@@ -56,4 +56,5 @@ export default defineConfig({
           keepNames: true
       }
       */
+
 })

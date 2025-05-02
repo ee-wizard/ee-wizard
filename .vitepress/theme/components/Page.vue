@@ -1,37 +1,43 @@
 <template>
-    <div v-for="(article, index) in posts" :key="index" class="post-list">
-        <div class="post-header">
-            <div class="post-title">
-                {{ article.frontMatter.order > 0 ? '📌' : '' }}
-                <a :href="withBase(article.regularPath)"> {{ article.frontMatter.title }}</a>
+    <div class="page-container">
+        <div class="content">
+            <div v-for="(article, index) in posts" :key="index" class="post-list">
+                <div class="post-header">
+                    <div class="post-title">
+                        {{ article.frontMatter.order > 0 ? '📌' : '' }}
+                        <a :href="withBase(article.regularPath)"> {{ article.frontMatter.title }}</a>
+                    </div>
+                </div>
+                <p class="describe" v-html="article.frontMatter.description"></p>
+                <div class='post-info'>
+                    {{ article.frontMatter.date }} <span v-for="item in article.frontMatter.tags"><a
+                            :href="withBase(`/pages/tags.html?tag=${item}`)"> {{ item }}</a></span>
+                </div>
+            </div>
+
+            <div class="pagination" v-if="pagesNum > 1">
+                <span v-for="(item, index) in pageArray" :key="index"
+                    :class="['link', { active: item === pageCurrent }]">
+                    <template v-if="item === '...'"> ... </template>
+                    <template v-else-if="item === pageCurrent">
+                        {{ item }}
+                    </template>
+                    <template v-else>
+                        <a :href="withBase(item === 1 ? '/index.html' : `/page_${item}.html`)">
+                            {{ item }}
+                        </a>
+                    </template>
+                </span>
             </div>
         </div>
-        <p class="describe" v-html="article.frontMatter.description"></p>
-        <div class='post-info'>
-            {{ article.frontMatter.date }} <span v-for="item in article.frontMatter.tags"><a :href="withBase(`/pages/tags.html?tag=${item}`)"> {{ item }}</a></span>
-        </div>
-    </div>
-
-    <div class="pagination" v-if="pagesNum > 1">
-        <span v-for="(item, index) in pageArray" :key="index" :class="['link', { active: item === pageCurrent }]">
-            <template v-if="item === '...'"> ... </template>
-            <template v-else-if="item === pageCurrent">
-                {{ item }}
-            </template>
-            <template v-else>
-                <a :href="withBase(item === 1 ? '/index.html' : `/page_${item}.html`)">
-                    {{ item }}
-                </a>
-            </template>
-        </span>
     </div>
 </template>
 
 <script lang="ts" setup>
-
 import { withBase } from 'vitepress'
 import { PropType, computed } from 'vue'
 import { generatePaginationArray } from '../pagination'
+
 interface Article {
     regularPath: string
     frontMatter: {
@@ -63,23 +69,42 @@ const pageArray = computed(() => {
 </script>
 
 <style scoped>
+.page-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.content {
+    flex: 3;
+    padding-right: 20px;
+}
+
+
+
 .post-list {
     border-bottom: 1px dashed var(--vp-c-divider);
     padding: 14px 0 14px 0;
+    background: var(--vp-c-neutral-inverse);
+    border-radius: 8px;
+    padding: 16px;
 }
+
 .post-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
+
 .post-title {
     font-size: 1.0625rem;
     font-weight: 500;
-    color: var(--bt-theme-title)!important;
+    color: var(--bt-theme-title) !important;
     margin: 0.1rem 0;
 }
-.post-title a{
-    color: var(--bt-theme-title)!important;
+
+.post-title a {
+    color: var(--bt-theme-title) !important;
 }
 
 .describe {
@@ -92,11 +117,13 @@ const pageArray = computed(() => {
     margin: 10px 0;
     line-height: 1.5rem;
 }
+
 .pagination {
     margin-top: 16px;
     display: flex;
     justify-content: center;
 }
+
 .link {
     display: inline-block;
     width: 26px;
@@ -106,6 +133,7 @@ const pageArray = computed(() => {
     font-weight: 400;
     border-radius: 20px;
 }
+
 .link.active {
     background: var(--vp-c-text-1);
     color: var(--vp-c-neutral-inverse);
@@ -116,11 +144,13 @@ const pageArray = computed(() => {
     .post-list {
         padding: 14px 0 14px 0;
     }
+
     .post-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
     }
+
     .post-title {
         font-size: 1.0625rem;
         font-weight: 400;
@@ -130,6 +160,7 @@ const pageArray = computed(() => {
         overflow: hidden;
         width: 17rem;
     }
+
     .describe {
         font-size: 0.9375rem;
         display: -webkit-box;
