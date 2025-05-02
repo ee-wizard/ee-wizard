@@ -29,6 +29,7 @@ import Giscus from "@giscus/vue";
 const { Layout } = DefaultTheme
 const { isDark, page } = useData();
 import { inBrowser, useData } from "vitepress";
+import { watch } from "vue";
 
 watch(isDark, (dark) => {
     if (!inBrowser) return;
