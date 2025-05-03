@@ -1,10 +1,10 @@
 ---
 date: 2025-05-03
-title: Paper: Efficient Constant-Space Multi-Vector Retrieval
+title: Paper-Efficient Constant-Space Multi-Vector Retrieval
 category: paper
 tags:
 - paper
-description: 论文：恒定大小的多向量检索。ECIR:2025
+description: 论文-恒定大小的多向量检索。ECIR:2025
 ---
 
 # Paper Information
