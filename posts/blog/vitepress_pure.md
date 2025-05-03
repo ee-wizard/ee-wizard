@@ -1,7 +1,7 @@
 ---
 date: 2025-05-01
 title: 使用vitepress-blog-pure搭建个人博客
-category: 博客
+category: blog
 tags:
 - vitepress
 - blog
