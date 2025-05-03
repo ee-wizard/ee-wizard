@@ -1,10 +1,11 @@
 ---
 date: 2025-05-02
 title: ComposeDesktop中的热重载
-category: code
+category: kotlin
 tags:
 - kotlin
-description: 如何配置Compose Desktop中的热重载
+- compose
+description: 配置Compose Desktop中的热重载
 ---
 
 # Configuration

@@ -3,8 +3,6 @@ date: 2025-05-02
 title: 团队知识库SPS开发
 category: project
 tags:
-- vue
-- electron
 - project
 description: 谨以此纪录SPS项目的诞生
 ---

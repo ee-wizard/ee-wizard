@@ -4,6 +4,7 @@ title: Paper-Efficient Constant-Space Multi-Vector Retrieval
 category: paper
 tags:
 - paper
+- vector_set_search
 description: 论文-恒定大小的多向量检索。ECIR:2025
 ---
 

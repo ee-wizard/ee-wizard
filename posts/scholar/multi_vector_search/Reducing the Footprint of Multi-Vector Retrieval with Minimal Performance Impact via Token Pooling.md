@@ -4,6 +4,7 @@ date: 2025-05-03
 category: paper
 tags:
 - paper
+- vector_set_search
 description: 论文-基于聚类的Token Pooling
 ---
 
