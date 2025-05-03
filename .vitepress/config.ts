@@ -32,10 +32,10 @@ export default defineConfig({
         search: {
             provider: 'local'
         },
-        //outline:[2,3],
-        outline: {
-            label: '文章摘要'
-        },
+        outline:[1,2,3],
+        // outline: {
+        //     label: '文章摘要'
+        // },
         socialLinks: [{ icon: 'github', link: 'https://github.com/Wizard-NJUPT' }],
     } as any,
 
