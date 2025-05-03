@@ -1,6 +1,7 @@
 ---
 title: Paper-Reducing the Footprint of Multi-Vector Retrieval with Minimal Performance Impact via Token Pooling
 date: 2025-05-03
+category: paper
 tags:
 - paper
 description: 论文-基于聚类的Token Pooling
