@@ -61,6 +61,24 @@ tasks.withType<ComposeHotRun>().configureEach {
 }
 ```
 
+Main.kt
+
+```kotlin
+fun main() {
+    singleWindowApplication(
+        title = "Shared Preferences Sandbox",
+        state = WindowState(width = 1000.dp, height = 800.dp),
+        alwaysOnTop = true
+    ) {
+        DevelopmentEntryPoint {
+            MainPage()
+        }
+    }
+}
+```
+
+然后不要直接运行呢，需gradle编译：gradle Run -PmainClass=cn.wizard.sps.MainKt
+
 
 
 # References
@@ -69,3 +87,4 @@ tasks.withType<ComposeHotRun>().configureEach {
 
 [github:JetBrains/compose-hot-reload](https://github.com/JetBrains/compose-hot-reload)
 
+[compose-hot-reload | Klibs.io](https://klibs.io/project/JetBrains/compose-hot-reload)
