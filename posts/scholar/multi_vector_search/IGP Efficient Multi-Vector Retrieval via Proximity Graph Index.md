@@ -1,5 +1,5 @@
 ---
-date: 2025-05-03
+date: 2025-05-04
 title: Paper-IGP Efficient Multi-Vector Retrieval via Proximity Graph Index
 category: paper
 tags:
