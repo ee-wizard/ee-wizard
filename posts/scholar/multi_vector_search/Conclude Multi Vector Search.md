@@ -46,11 +46,138 @@ Dessert使用LSH将向量进行降维，BioVectorSearch使用FlyHash将向量集
 - 然后是Muvera，这个不用说，明着做聚类，不过它在聚类之后再多次投影，而它的recall就是多次投影带来的，（似乎）消解了dimensional curse的影响
 - BioVss利用FlyHash对向量进行“投影”，而FlyHash最早也是应用于聚类。它的特性是产生了二进制编码，由此来进行过滤。
   - 现在来看，它与Dessert or Muvera好像具有通性？FlyHash需要超参数**L**（二进制编码长度）和**m**（WTA策略，1-bit的位数），LSH需要**L**个Hash Function和**m**个Hash Table，~emmm….
+- 这样看，其实subspace-cluster也与Dessert的思路完全吻合，只是subspace-cluster不再是随机投影，而是通过迭代，获取尽可能使投影空间正交的多个投影矩阵，在各投影空间上进行聚类
+  - But, Desset使用的L个Hash函数，每个hash函数h将$v(vector) \in R^d --> R$，而每个h又可以看作d维向量，L个hash函数组合成一个$L \times d$的投影矩阵M，进而$v\cdot M^T \in R^L$，然后由LSH的局部敏感特性，将靠的近的hash值聚成bucket（也就是m = table num）
+  - Then, 此时再看BioVss，我们之前忽略了一点，BioVss其实是解决Hausdorf距离问题的，那么从这看来，LSH方案是否能够适用于Hasudorf呢
 
 
+## 关于ragatouille-ColbertV2的源码修改
+
+**保存Base Embedding**
+
+1. RAGPretrainedModel>index
+
+- 添加*embedding_filename*: *Optional*[*str*] = None参数，并向self.model.index传递
+
+```python
+return self.model.index(
+            collection,
+            pid_docid_map=pid_docid_map,
+            docid_metadata_map=docid_metadata_map,
+            index_name=index_name,
+            max_document_length=max_document_length,
+            overwrite=overwrite_index,
+            bsize=bsize,
+            use_faiss=use_faiss,
+            embedding_filename=embedding_filename,
+        )
+```
+
+
+
+2. colbert>indexer.py>Indexer>index
+
+```python
+    def __launch(self, collection, embedding_filename: str):
+        launcher = Launcher(encode)
+        # if self.config.nranks == 1 and self.config.avoid_fork_if_possible:
+        #     shared_queues = []
+        #     shared_lists = []
+        #     launcher.launch_without_fork(self.config, collection, shared_lists, shared_queues, self.verbose)
+        #     return
+        manager = mp.Manager()
+        shared_lists = [manager.list() for _ in range(self.config.nranks)]
+        shared_queues = [manager.Queue(maxsize=1) for _ in range(self.config.nranks)]
+        # Encodes collection into index using the CollectionIndexer class
+        launcher.launch(self.config, collection, shared_lists, shared_queues, self.verbose, embedding_filename)
+```
+
+3. indexing>collection_indexer.py>CollectionIndexer>index
+
+```python
+    def index(self):
+        '''
+        Encode embeddings for all passages in collection.
+        Each embedding is converted to code (centroid id) and residual.
+        Embeddings stored according to passage order in contiguous chunks of memory.
+
+        Saved data files described below:
+            {CHUNK#}.codes.pt:      centroid id for each embedding in chunk
+            {CHUNK#}.residuals.pt:  16-bits residual for each embedding in chunk
+            doclens.{CHUNK#}.pt:    number of embeddings within each passage in chunk
+        '''
+        with self.saver.thread():
+            batches = self.collection.enumerate_batches(rank=self.rank)
+            for chunk_idx, offset, passages in tqdm.tqdm(batches, disable=self.rank > 0):
+                if self.config.resume and self.saver.check_chunk_exists(chunk_idx):
+                    if self.verbose > 2:
+                        Run().print_main(f"#> Found chunk {chunk_idx} in the index already, skipping encoding...")
+                    continue
+                # Encode passages into embeddings with the checkpoint model
+                embs, doclens = self.encoder.encode_passages(passages)
+                
+                if embedding_filename is not None:
+                    import numpy as np
+                    numpy_32 = embs.numpy().astype("float32")
+                    os.makedirs(embedding_filename, exist_ok=True)
+                    np.save(os.path.join(embedding_filename, f"encoding{chunk_idx}_float32.npy"), numpy_32)
+                    np.save(os.path.join(embedding_filename, f"doclens{chunk_idx}.npy"), doclens)
+                    print(f'save embeddings chunkID {chunk_idx}')
+                
+                if self.use_gpu:
+                    assert embs.dtype == torch.float16
+                else:
+                    assert embs.dtype == torch.float32
+                    embs = embs.half()
+                if self.verbose > 1:
+                    Run().print_main(f"#> Saving chunk {chunk_idx}: \t {len(passages):,} passages "
+                                    f"and {embs.size(0):,} embeddings. From #{offset:,} onward.")
+
+                self.saver.save_chunk(chunk_idx, offset, embs, doclens) # offset = first passage index in chunk
+                del embs, doclens
+```
+
+### 使用保存的Embedding进行检索
+
+ColbertV2内部的文档ID与真实ID的索引值相差两位
+
+searched_id - 2  = true_id
+
+```python
+print("\n使用保存的embedding进行搜索...")
+loaded_embedding = torch.from_numpy(np.load(embedding_path))
+if torch.cuda.is_available():
+    loaded_embedding = loaded_embedding.cuda()
+
+# 使用dense_search方法进行搜索
+start_time = time.time()
+pids, ranks, scores = searcher.dense_search(loaded_embedding, k=10)
+search_time = (time.time() - start_time) * 1000
+
+print(f"搜索耗时: {search_time:.2f}毫秒")
+print(f"找到 {len(pids)} 个结果")
+if len(pids) > 0:
+    print(f"前3个文档ID: {pids[:3]}")
+    print(f"前3个分数: {scores[:3]}")
+
+# 获取完整文档内容
+collection = colbert_model.collection
+print("\n前3个结果的文档内容:")
+for i, pid in enumerate(pids[:3]):
+    print(f"\n结果 {i+1}:")
+    print(f"文档ID: {pid}")
+    print(f"分数: {scores[i]}")
+    if pid < len(collection):
+        print(f"内容: {collection[pid][:100]}...")
+    else:
+        print(f"内容: 无法获取 (ID超出范围)")
+```
 
 ## **Related Codes**
 
 [Github: Colbert V2](https://github.com/stanford-futuredata/ColBERT)
 
 [ColbertV2封装库](https://github.com/AnswerDotAI/RAGatouille)
+
+[Github: ThirdAIResearch/Dessert](https://github.com/ThirdAIResearch/Dessert)
+
