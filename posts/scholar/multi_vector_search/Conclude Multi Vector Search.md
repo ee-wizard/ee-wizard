@@ -48,7 +48,7 @@ Dessert使用LSH将向量进行降维，BioVectorSearch使用FlyHash将向量集
   - 现在来看，它与Dessert or Muvera好像具有通性？FlyHash需要超参数**L**（二进制编码长度）和**m**（WTA策略，1-bit的位数），LSH需要**L**个Hash Function和**m**个Hash Table，~emmm….
 - 这样看，其实subspace-cluster也与Dessert的思路完全吻合，只是subspace-cluster不再是随机投影，而是通过迭代，获取尽可能使投影空间正交的多个投影矩阵，在各投影空间上进行聚类
   - But, Desset使用的L个Hash函数，每个hash函数h将$v(vector) \in R^d --> R$，而每个h又可以看作d维向量，L个hash函数组合成一个$L \times d$的投影矩阵M，进而$v\cdot M^T \in R^L$，然后由LSH的局部敏感特性，将靠的近的hash值聚成bucket（也就是m = table num）
-  - Then, 此时再看BioVss，我们之前忽略了一点，BioVss其实是解决Hausdorf距离问题的，那么从这看来，LSH方案是否能够适用于Hasudorf呢
+  - Then, 此时再看BioVss，其实FlyHash也属于LSH，但是Random-Project-LSH得出的hash val的性质是差值越近，则向量越接近；而FlyHash得出的hash val的性质是hamming distance越近则向量越近
 
 
 ## 关于ragatouille-ColbertV2的源码修改
@@ -72,8 +72,6 @@ return self.model.index(
             embedding_filename=embedding_filename,
         )
 ```
-
-
 
 2. colbert>indexer.py>Indexer>index
 
@@ -135,42 +133,6 @@ return self.model.index(
 
                 self.saver.save_chunk(chunk_idx, offset, embs, doclens) # offset = first passage index in chunk
                 del embs, doclens
-```
-
-### 使用保存的Embedding进行检索
-
-ColbertV2内部的文档ID与真实ID的索引值相差两位
-
-searched_id - 2  = true_id
-
-```python
-print("\n使用保存的embedding进行搜索...")
-loaded_embedding = torch.from_numpy(np.load(embedding_path))
-if torch.cuda.is_available():
-    loaded_embedding = loaded_embedding.cuda()
-
-# 使用dense_search方法进行搜索
-start_time = time.time()
-pids, ranks, scores = searcher.dense_search(loaded_embedding, k=10)
-search_time = (time.time() - start_time) * 1000
-
-print(f"搜索耗时: {search_time:.2f}毫秒")
-print(f"找到 {len(pids)} 个结果")
-if len(pids) > 0:
-    print(f"前3个文档ID: {pids[:3]}")
-    print(f"前3个分数: {scores[:3]}")
-
-# 获取完整文档内容
-collection = colbert_model.collection
-print("\n前3个结果的文档内容:")
-for i, pid in enumerate(pids[:3]):
-    print(f"\n结果 {i+1}:")
-    print(f"文档ID: {pid}")
-    print(f"分数: {scores[i]}")
-    if pid < len(collection):
-        print(f"内容: {collection[pid][:100]}...")
-    else:
-        print(f"内容: 无法获取 (ID超出范围)")
 ```
 
 ## **Related Codes**
