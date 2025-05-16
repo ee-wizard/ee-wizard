@@ -43,12 +43,12 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: latest
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 10
+      # - name: Setup pnpm
+      #   uses: pnpm/action-setup@v2
+      #   with:
+      #     version: 10
       - name: Install Dependency
-        run: pnpm install --frozen-lockfile
+        run: npm install
       - name: Build Site
         run: pnpm run build
       - name: Setup Pages
