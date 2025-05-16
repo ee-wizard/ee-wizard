@@ -12,6 +12,9 @@ export default defineConfig({
     cacheDir: './node_modules/vitepress_cache',
     description: 'vitepress,blog,blog-theme',
     ignoreDeadLinks: true,
+    markdown: {
+        math: true,
+    },
     themeConfig: {
         posts: await getPosts(pageSize),
         website: 'https://github.com/airene/vitepress-blog-pure', //copyright link

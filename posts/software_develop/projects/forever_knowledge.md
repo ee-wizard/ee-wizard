@@ -9,9 +9,8 @@ description: 谨以此纪录SPS项目的诞生
 
 # Environments
 
-选用Kotlin Compose Desktop.（😍比起JS，我更喜欢Java. No, Kotlin!）
-
-Eletron(客户端)+Nodejs（服务端）+React(Web）
+- Tauri2.0
+  - Vue3, Pinia, 
 
 # Project Discussion
 
