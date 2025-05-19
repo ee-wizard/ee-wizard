@@ -23,3 +23,4 @@ message(STATUS "Using Eigen3 from: ${EIGEN3_INCLUDE_DIR}")
 [GitLab: Eigen3,4](https://gitlab.com/libeigen/eigen/-/tree/3.4?ref_type=heads)
 
 [Blog](https://blog.mangoeffect.net/eigen/use-eigen-in-cmake)
+
