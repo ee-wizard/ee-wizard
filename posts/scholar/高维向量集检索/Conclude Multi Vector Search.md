@@ -59,6 +59,12 @@ Dessert使用LSH将向量进行降维，BioVectorSearch使用FlyHash将向量集
 
 Dessert内部没有使用MaxSim作rerank，在Lotte数据集上的测试结果并不理想
 
+### About Muvera
+
+参数：d_proj, r, B
+
+1. 空间聚类划分为B个聚簇，将每个向量集放入对应的聚簇并作均值聚合 -> B  * d
+2. 对每个聚簇中的向量投影r次: B  * d -> B * d_proj * r
 
 ## 关于ragatouille-ColbertV2的源码修改
 
