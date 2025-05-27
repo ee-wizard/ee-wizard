@@ -66,89 +66,12 @@ Dessert内部没有使用MaxSim作rerank，在Lotte数据集上的测试结果�
 1. 空间聚类划分为B个聚簇，将每个向量集放入对应的聚簇并作均值聚合 -> B  * d
 2. 对每个聚簇中的向量投影r次: B  * d -> B * d_proj * r
 
-## 关于ragatouille-ColbertV2的源码修改
 
-**保存Base Embedding**
 
-1. RAGPretrainedModel>index
+### About SubSpace Cluster
 
-- 添加*embedding_filename*: *Optional*[*str*] = None参数，并向self.model.index传递
-
-```python
-return self.model.index(
-            collection,
-            pid_docid_map=pid_docid_map,
-            docid_metadata_map=docid_metadata_map,
-            index_name=index_name,
-            max_document_length=max_document_length,
-            overwrite=overwrite_index,
-            bsize=bsize,
-            use_faiss=use_faiss,
-            embedding_filename=embedding_filename,
-        )
-```
-
-2. colbert>indexer.py>Indexer>index
-
-```python
-    def __launch(self, collection, embedding_filename: str):
-        launcher = Launcher(encode)
-        # if self.config.nranks == 1 and self.config.avoid_fork_if_possible:
-        #     shared_queues = []
-        #     shared_lists = []
-        #     launcher.launch_without_fork(self.config, collection, shared_lists, shared_queues, self.verbose)
-        #     return
-        manager = mp.Manager()
-        shared_lists = [manager.list() for _ in range(self.config.nranks)]
-        shared_queues = [manager.Queue(maxsize=1) for _ in range(self.config.nranks)]
-        # Encodes collection into index using the CollectionIndexer class
-        launcher.launch(self.config, collection, shared_lists, shared_queues, self.verbose, embedding_filename)
-```
-
-3. indexing>collection_indexer.py>CollectionIndexer>index
-
-```python
-    def index(self):
-        '''
-        Encode embeddings for all passages in collection.
-        Each embedding is converted to code (centroid id) and residual.
-        Embeddings stored according to passage order in contiguous chunks of memory.
-
-        Saved data files described below:
-            {CHUNK#}.codes.pt:      centroid id for each embedding in chunk
-            {CHUNK#}.residuals.pt:  16-bits residual for each embedding in chunk
-            doclens.{CHUNK#}.pt:    number of embeddings within each passage in chunk
-        '''
-        with self.saver.thread():
-            batches = self.collection.enumerate_batches(rank=self.rank)
-            for chunk_idx, offset, passages in tqdm.tqdm(batches, disable=self.rank > 0):
-                if self.config.resume and self.saver.check_chunk_exists(chunk_idx):
-                    if self.verbose > 2:
-                        Run().print_main(f"#> Found chunk {chunk_idx} in the index already, skipping encoding...")
-                    continue
-                # Encode passages into embeddings with the checkpoint model
-                embs, doclens = self.encoder.encode_passages(passages)
-                
-                if embedding_filename is not None:
-                    import numpy as np
-                    numpy_32 = embs.numpy().astype("float32")
-                    os.makedirs(embedding_filename, exist_ok=True)
-                    np.save(os.path.join(embedding_filename, f"encoding{chunk_idx}_float32.npy"), numpy_32)
-                    np.save(os.path.join(embedding_filename, f"doclens{chunk_idx}.npy"), doclens)
-                    print(f'save embeddings chunkID {chunk_idx}')
-                
-                if self.use_gpu:
-                    assert embs.dtype == torch.float16
-                else:
-                    assert embs.dtype == torch.float32
-                    embs = embs.half()
-                if self.verbose > 1:
-                    Run().print_main(f"#> Saving chunk {chunk_idx}: \t {len(passages):,} passages "
-                                    f"and {embs.size(0):,} embeddings. From #{offset:,} onward.")
-
-                self.saver.save_chunk(chunk_idx, offset, embs, doclens) # offset = first passage index in chunk
-                del embs, doclens
-```
+1. 使用m个软正交投影向量，将向量集合投影到低维向量空间，分别做聚类
+2. 使用子空间聚类，迭代出m个投影向量和聚簇中心集
 
 ## **Related Codes**
 
