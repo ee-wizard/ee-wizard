@@ -3,7 +3,7 @@ date: 2025-05-26
 title: Paper-MPAD-A New Dimension-Reduction Method for Preserving Nearest Neighbors in High-Dimensional Vector Search
 category: scholar
 tags:
-- scholar
+- paper
 - vector_search
 description: 论文-高维空间降维方法
 ---

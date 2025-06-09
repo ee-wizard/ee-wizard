@@ -3,7 +3,7 @@ date: 2025-05-16
 title: Paper-Revisiting the Index Construction of Proximity Graph-Based Approximate Nearest Neighbor Search.
 category: scholar
 tags:
-- scholar
+- paper
 - vector_search
 description: 论文-重新审视基于邻近图的近似最近邻搜索的索引构建
 ---
