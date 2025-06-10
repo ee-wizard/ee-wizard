@@ -1,6 +1,6 @@
 ---
 date: 2025-05-16
-title: Paper-Revisiting the Index Construction of Proximity Graph-Based Approximate Nearest Neighbor Search.
+title: Paper-Revisiting the Index Construction of Proximity Graph-Based Approximate Nearest Neighbor Search
 category: scholar
 tags:
 - paper

@@ -5,7 +5,7 @@ category: scholar
 tags: 
 - paper
 - vector_search
-description: ""
+description: Paper-Revisiting the Index Construction of Proximity Graph-Based Approximate Nearest Neighbor Search
 ---
 
 ## 论文信息
@@ -42,7 +42,7 @@ Approximate Nearest Neighbor (ANN) search in high-dimensional Euclidean  spaces 
 
 **线性扫描，计算SC-score，然后rerank**
 
-<img src="./../../../../../LocalResources/Pictures/Cache/Subspace%20Collision/20250609201959045.png" alt="image-20250609201950234" style="zoom:67%;" />
+<img src="https://raw.githubusercontent.com/ee-wizard/ee-wizard/res/images/20250610220537325.png" alt="image-20250609201950234" style="zoom:67%;" />
 
 **workflow**
 
