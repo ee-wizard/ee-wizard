@@ -1,6 +1,6 @@
 ---
 date: 2025-06-09
-title: Subspace Collision: An Efficient and Accurate Framework for High-dimensional Approximate Nearest Neighbor Search
+title: Paper-Subspace Collision(An Efficient and Accurate Framework for High-dimensional Approximate Nearest Neighbor Search)
 category: scholar
 tags: 
 - paper
@@ -31,7 +31,6 @@ Approximate Nearest Neighbor (ANN) search in high-dimensional Euclidean  spaces 
 主流的索引方案： LSH， Tree-based, Graph-based
 
 ### 定义
-
 
 **Definition 1** (Collision). Given a dataset D of 𝑛 data points in 𝑑-dimensional space, a query point 𝑞 ∈ R𝑑 , and a collision ratio 𝛼 ∈ (0, 1), if a data point 𝑜 ∈ D satisfies: ∥𝑜, 𝑞∥ is one of the minimum 𝛼 · 𝑛 distances between all 𝑛 data points and 𝑞, i.e., 𝑜 is one of the (𝛼 · 𝑛)-NNs of 𝑞 in D, we say that 𝑜 collides with 𝑞.
 
@@ -68,6 +67,12 @@ $O(2 \cdot \sqrt{K} \cdot \frac{s}{2} \cdot n \cdot t) = O(\sqrt{K} \cdot s \cdo
 <img src="https://raw.githubusercontent.com/ee-wizard/ee-wizard/res/images/20250609202942246.png" alt="image-20250609202939415" style="zoom:80%;" />
 
 **Dynamic Activation algorithm**
+
+多序列算法是结合IMI提出的，用于查询IMI并获取与查询接近的数据点[9]。然而，多序列算法使用优先级队列来保存候选簇。对于优先级队列，插入和弹出操作都需要对数时间复杂度，非常耗时。因此，我们设计了一种名为**动态激活**的新算法来支持无需优先级队列的IMI查询。动态激活算法返回的查询结果与多序列算法相同。5.2节中的实验结果表明，动态激活算法的效率比多序列算法高出40%。
+
+> The smaller the distance sum of clusters in 𝐼𝑀𝐼 , the earlier they are retrieved. 
+
+<img src="https://raw.githubusercontent.com/ee-wizard/ee-wizard/res/images/20250610142432483.png" alt="image-20250610142427970" style="zoom: 50%;" />
 
 
 
