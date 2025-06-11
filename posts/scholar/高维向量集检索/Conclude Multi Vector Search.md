@@ -59,12 +59,136 @@ Dessert使用LSH将向量进行降维，BioVectorSearch使用FlyHash将向量集
 
 Dessert内部没有使用MaxSim作rerank，在Lotte数据集上的测试结果并不理想
 
+### About ColBert-Plaid
+
+采样
+
+```python
+    def _sample_pids(self, n_item: int):
+        num_passages = n_item
+
+        # Simple alternative: < 100k: 100%, < 1M: 15%, < 10M: 7%, < 100M: 3%, > 100M: 1%
+        # Keep in mind that, say, 15% still means at least 100k.
+        # So the formula is max(100% * min(total, 100k), 15% * min(total, 1M), ...)
+        # Then we subsample the vectors to 100 * num_partitions
+
+        typical_doclen = 120  # let's keep sampling independent of the actual doc_maxlen
+        # sampled_pids = 16 * np.sqrt(typical_doclen * num_passages)
+        sampled_pids = np.sqrt(typical_doclen * num_passages) / 2
+        # sampled_pids = int(2 ** np.floor(np.log2(1 + sampled_pids)))
+        sampled_pids = min(1 + int(sampled_pids), num_passages)
+
+        sampled_pids = random.sample(range(num_passages), sampled_pids)
+        print_message(
+            f"# of sampled PIDs = {len(sampled_pids)} \t sampled_pids[:3] = {sampled_pids[:3]}"
+        )
+
+        return set(sampled_pids)
+```
+
+聚类空间数量的计算
+
+```python
+# Select the number of partitions
+num_passages = n_item
+self.num_embeddings_est = num_passages * avg_doclen_est
+self.num_partitions = int(2**np.floor(
+np.log2(16 * np.sqrt(self.num_embeddings_est))))
+```
+
 ### About Muvera
 
-参数：d_proj, r, B
+参数：dproj, r,proj B
 
 1. 空间聚类划分为B个聚簇，将每个向量集放入对应的聚簇并作均值聚合 -> B  * d
-2. 对每个聚簇中的向量投影r次: B  * d -> B * d_proj * r
+2. 对每个聚簇中的向量投影rproj次: B  * d -> B * dproj * rproj
+
+**关于其具体实现**
+
+1. 使用了rproj次基于超平面的软聚类，获取每个向量的多个聚簇id
+
+```python
+self.partition_vectors = np.random.normal(size=(self.r_proj, ksim, self.d_vector), loc=0, scale=1.0).astype(np.float32)
+
+@numba.jit(nopython=True, parallel=True, fastmath=True)
+def compute_query_codes_numba(vector_set, partition_vec_reshaped, r_proj, ksim, n_cluster):
+  
+    vector_set = vector_set.astype(np.float32)
+    partition_vec_reshaped = partition_vec_reshaped.astype(np.float32)
+    
+    query_n_vec = vector_set.shape[0]
+    partition_code = np.dot(vector_set, partition_vec_reshaped.T)
+    query_codes = np.zeros((query_n_vec * r_proj), dtype=np.uint32)
+
+    for qvec_id in numba.prange(query_n_vec):
+        for rep_id in range(r_proj):
+            partition_value = partition_code[qvec_id, rep_id * ksim : (rep_id + 1) * ksim]
+            query_code = 0
+            for sim_id in range(ksim):
+                code = 1 if partition_value[sim_id] > 0 else 0
+                query_code += code << sim_id
+            query_codes[qvec_id * r_proj + rep_id] = query_code
+
+    return query_codes
+```
+
+输出每个向量在不同软聚类下的聚簇id shape=(nquery_vector, rproj)
+
+2. 将各个向量放入对应的聚簇中
+
+```python
+@numba.jit(nopython=True, parallel=True, fastmath=True)
+def compute_cluster_vectors(vector_set, query_codes, r_proj, n_cluster, d_vector):
+
+    vector_set = vector_set.astype(np.float32)
+
+    query_n_vec = vector_set.shape[0]
+    query_cluster_vec = np.zeros((r_proj * n_cluster * d_vector), dtype=np.float32)
+    for qvec_id in numba.prange(query_n_vec):
+        for rep_id in range(r_proj):
+            cluster_id = query_codes[qvec_id * r_proj + rep_id]
+            query_vec = vector_set[qvec_id]
+            start_idx = rep_id * n_cluster * d_vector + cluster_id * d_vector
+            end_idx = start_idx + d_vector
+            query_cluster_vec[start_idx:end_idx] += query_vec
+            # DEBUG: 聚类向量归一化
+            query_cluster_vec[start_idx:end_idx] /= np.linalg.norm(query_cluster_vec[start_idx:end_idx]) + 1e-8
+    return query_cluster_vec
+```
+
+3. 随机投影
+
+```python
+@numba.jit(nopython=True, parallel=True, fastmath=True)
+def compute_ip_vector(query_cluster_vec, projection_matrix, r_proj, n_cluster, d_vector, d_proj):
+    """
+    使用numba优化的IP向量计算
+    """
+    # 确保数据类型一致
+    query_cluster_vec = query_cluster_vec.astype(np.float32)
+    projection_matrix = projection_matrix.astype(np.float32)
+
+    query_ip_vector = np.zeros((r_proj * n_cluster * d_proj), dtype=np.float32)
+
+    for rep_id in numba.prange(r_proj):
+        # 获取当前rep的聚类向量
+        cluster_vec_start = rep_id * n_cluster * d_vector
+        cluster_vec_end = cluster_vec_start + n_cluster * d_vector
+        cluster_vec = query_cluster_vec[cluster_vec_start:cluster_vec_end].reshape(n_cluster, d_vector)
+
+        # 获取当前rep的投影矩阵
+        proj_matrix = projection_matrix[rep_id]  # shape: (d_proj, vec_dim)
+
+        # 矩阵乘法: (n_cluster, vec_dim) * (vec_dim, d_proj) -> (n_cluster, d_proj)
+        result = np.dot(cluster_vec, proj_matrix.T)
+
+        # 存储结果
+        ip_start = rep_id * n_cluster * d_proj
+        ip_end = ip_start + n_cluster * d_proj
+        query_ip_vector[ip_start:ip_end] = result.flatten()
+
+    return query_ip_vector
+```
 
 
 
@@ -72,6 +196,8 @@ Dessert内部没有使用MaxSim作rerank，在Lotte数据集上的测试结果�
 
 1. 使用m个软正交投影向量，将向量集合投影到低维向量空间，分别做聚类
 2. 使用子空间聚类，迭代出m个投影向量和聚簇中心集
+
+
 
 ## **Related Codes**
 
