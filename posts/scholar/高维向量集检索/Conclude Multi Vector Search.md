@@ -32,8 +32,6 @@ description: 关于多向量检索的一些思考
 
 关于以上Paper和Blog，在此不再分析（好吧，其实是原来的笔记太烂了，以后再整理吧~）
 
-
-
 ## Thinking
 
 最早的Plaid提出四阶段剪枝方案，它与其他方案走的方向不同，也开放了多向量检索的另一条研究道路（如何更好的剪枝）
@@ -58,6 +56,8 @@ Dessert使用LSH将向量进行降维，BioVectorSearch使用FlyHash将向量集
 ### About Dessert
 
 Dessert内部没有使用MaxSim作rerank，在Lotte数据集上的测试结果并不理想
+
+2025-06-12Dessert也在做软子空间聚类，使用多个超平面对整个向量空间进行分割，然后对每个聚簇做cell分割
 
 ### About ColBert-Plaid
 
@@ -102,6 +102,10 @@ np.log2(16 * np.sqrt(self.num_embeddings_est))))
 
 1. 空间聚类划分为B个聚簇，将每个向量集放入对应的聚簇并作均值聚合 -> B  * d
 2. 对每个聚簇中的向量投影rproj次: B  * d -> B * dproj * rproj
+
+weaviate在1.31.0正式兼容MUVERA https://weaviate.io/developers/weaviate/configuration/compression/multi-vectors
+
+
 
 **关于其具体实现**
 
@@ -190,12 +194,12 @@ def compute_ip_vector(query_cluster_vec, projection_matrix, r_proj, n_cluster, d
     return query_ip_vector
 ```
 
-
-
 ### About SubSpace Cluster
 
 1. 使用m个软正交投影向量，将向量集合投影到低维向量空间，分别做聚类
 2. 使用子空间聚类，迭代出m个投影向量和聚簇中心集
+
+
 
 
 

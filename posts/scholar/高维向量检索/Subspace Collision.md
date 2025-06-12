@@ -12,11 +12,11 @@ description: Paper-Revisiting the Index Construction of Proximity Graph-Based Ap
 
 **Subspace Collision: An Efficient and Accurate Framework for High-dimensional Approximate Nearest Neighbor Search**
 
-JIUQI WEI, Institute of Computing Technology Chinese Academy of Sciences, University of Chinese Academy of Sciences, China
+JIUQI WEI, **Institute of Computing Technology Chinese Academy of Sciences**, University of Chinese Academy of Sciences, China
 XIAODONG LEE, Institute of Computing Technology Chinese Academy of Sciences, Fuxi Institution, China
-ZHENYU LIAO, Huazhong University of Science and Technology, China
-THEMIS PALPANAS, LIPADE, Université Paris Cité, France
-BOTAO PENG, Institute of Computing Technology Chinese Academy of Sciences, China
+ZHENYU LIAO, **Huazhong University of Science and Technology**, China
+THEMIS PALPANAS, **LIPADE**, Université Paris Cité, France
+BOTAO PENG, **Institute of Computing Technology Chinese Academy of Sciences**, China
 
 [Proceedings of the ACM on Management of Data](https://dl.acm.org/toc/pacmmod/2025/3/1)
 
