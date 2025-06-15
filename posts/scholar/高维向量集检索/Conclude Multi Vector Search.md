@@ -3,7 +3,7 @@ date: 2025-05-05
 title: 关于多向量检索的死磕历程
 category: scholar
 tags:
-- 
+- scholar
 - vector_set_search
 description: 关于多向量检索的一些思考
 ---
@@ -211,3 +211,4 @@ def compute_ip_vector(query_cluster_vec, projection_matrix, r_proj, n_cluster, d
 
 [Github: ThirdAIResearch/Dessert](https://github.com/ThirdAIResearch/Dessert)
 
+https://weaviate.io/blog/muvera#costs-recall--query-throughput
