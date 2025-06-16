@@ -28,6 +28,7 @@ The command sets the following default [environment variables](https://weaviate.
 
 https://weaviate.io/blog/muvera#costs-recall--query-throughput
 
-Thanks for your reply, I picked a chunk on the Lotte dataset and ran your implementation of Muvera, but found that the recall rate was only 30%-40%. Recently [Weaviate](https://weaviate.io/blog/muvera#costs-recall--query-throughput) also implemented Muvera, and with the same parameters, Weaviate can achieve a recall rate of 80%.
 
-Due to experimental environment limitations, it is not possible to test  the entire dataset for the time being, I would like to know if you have  tested Muvera in its entirety in your paper.
+
+
+
