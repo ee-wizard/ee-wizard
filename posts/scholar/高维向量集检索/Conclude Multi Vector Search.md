@@ -24,7 +24,7 @@ description: 关于多向量检索的一些思考
 
 **MUVERA: Multi-Vector Retrieval via Fixed Dimensional Encodings**（2024）
 
-**IGP Efficient Multi-Vector Retrieval via Proximity Graph Index**（2025 未公开）
+**IGP Efficient Multi-Vector Retrieval via Proximity Graph Index**（2025）
 
 ## Related Discussion
 
